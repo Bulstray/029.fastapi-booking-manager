@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -25,4 +25,11 @@ async def get_booking_by_id(
         Depends(db_helper.deps.session_getter),
     ],
 ) -> BookingModel:
-    return await booking_crud.get_booking_by_id(session, id_)
+
+    if booking := await booking_crud.get_booking_by_id(session, id_):
+        return booking
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Booking not found",
+    )
