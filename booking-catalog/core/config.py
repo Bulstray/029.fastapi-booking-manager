@@ -1,4 +1,4 @@
-from pydantic import AmqpDsn, BaseModel, PostgresDsn
+from pydantic import BaseModel, PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,8 +21,8 @@ class DatabaseConfig(BaseModel):
     url: PostgresDsn
 
 
-class MessageBrokerConfig(BaseModel):
-    url: AmqpDsn
+class RedisConfig(BaseModel):
+    url: RedisDsn
 
 
 class Settings(BaseSettings):
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
         env_prefix="APP_CONFIG__",
     )
     db: DatabaseConfig
-    broker: MessageBrokerConfig
+    broker: RedisConfig
 
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiV1Prefix()
