@@ -13,7 +13,7 @@ class Booking(IntIdPkMixin, Base):
     __tablename__ = "bookings"
 
     name: Mapped[str]
-    reservation_date: Mapped[datetime]
+    datetime: Mapped[datetime]
     service_type: Mapped[ServiceType] = mapped_column(
         Enum(ServiceType),
         default=ServiceType.pending,
