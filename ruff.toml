@@ -93,3 +93,5 @@ select = [
 	"PERF", # Perflint (PERF)
 	"FURB", # refurb (FURB)
 ]
+
+ignore = ["S101", "RUF002", "PGH003"]
