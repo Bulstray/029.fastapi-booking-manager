@@ -86,18 +86,9 @@ async def list_bookings(
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
-    service_type: Annotated[
-        str | None,
-        Query(None, description="Фильтр по статусу"),
-    ],
-    page: Annotated[
-        int,
-        Query(1, ge=1, description="Номер страницы"),
-    ],
-    size: Annotated[
-        int,
-        Query(10, ge=1, le=100, description="Записей на странице"),
-    ],
+    service_type: str | None = Query(None, description="Фильтр по статусу"),
+    page: int = Query(1, ge=1, description="Номер страницы"),
+    size: int = Query(10, ge=1, le=100, description="Записей на странице"),
 ) -> list[BookingModel]:
 
     return await booking_crud.get_bookings(
