@@ -1,15 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.models import Booking as BookingModel
 from core.models import db_helper
-from core.schemas import BookingCreate, BookingRead
-from storage.booking import crud as booking_crud
+from core.schemas import BookingCreate, BookingRead, BookingReadList
 from core.types import ServiceType
-
+from storage.booking import crud as booking_crud
 from tasks import update_service_type
 
 router = APIRouter(
@@ -37,7 +36,7 @@ async def get_booking_by_id(
     )
 
 
-@router.post("/")
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_booking(
     booking_in: BookingCreate,
     session: Annotated[
@@ -78,3 +77,16 @@ async def delete_booking(
         )
 
     await booking_crud.delete_booking(session, booking)
+
+
+@router.get("/", response_model=list[BookingReadList])
+async def list_bookings(
+    service_type: str | None = Query(None, description="Фильтр по статусу"),
+    page: int = Query(1, ge=1, description="Номер страницы"),
+    size: int = Query(10, ge=1, le=100, description="Записей на странице"),
+    session: AsyncSession = Depends(db_helper.session_getter),
+) -> list[BookingModel]:
+
+    return await booking_crud.get_bookings(
+        session, service_type=service_type, page=page, size=size
+    )
