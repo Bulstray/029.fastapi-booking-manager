@@ -1,15 +1,18 @@
 import random
-from datetime import datetime
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import status
 from httpx2 import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.schemas import BookingCreate
 from core.models import Booking
-from storage.booking import crud as booking_crud
+from core.schemas import BookingCreate
 from core.types import ServiceType
+from storage.booking import crud as booking_crud
+
+EXPECTED_BOOKINGS_COUNT = 5
 
 
 async def create_test_booking(
@@ -23,13 +26,16 @@ async def create_test_booking(
 
 
 @pytest.mark.anyio
-async def test_list_bookings(client: AsyncClient, session: AsyncSession):
+async def test_list_bookings(
+    client: AsyncClient,
+    session: AsyncSession,
+) -> None:
     list_service_type = list(ServiceType)
     list_bookings = [
         Booking(
             name=f"test{i}",
-            service_type=random.choice(list_service_type),
-            datetime=datetime.now(),
+            service_type=random.choice(list_service_type),  # noqa: S311
+            datetime=datetime.now(tz=UTC),
         )
         for i in range(20)
     ]
@@ -44,16 +50,19 @@ async def test_list_bookings(client: AsyncClient, session: AsyncSession):
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()) == 5
+    assert len(response.json()) == EXPECTED_BOOKINGS_COUNT
 
 
 @pytest.mark.anyio
-async def test_create_booking(client: AsyncClient, mock_taskiq):
+async def test_create_booking(
+    client: AsyncClient,
+    mock_taskiq: AsyncMock,
+) -> None:
     response = await client.post(
         "/",
         json={
             "name": "test",
-            "datetime": f"{datetime.now()}",
+            "datetime": f"{datetime.now(tz=UTC)}",
         },
     )
     assert response.json() == {"message": "Booking is publisher"}
@@ -63,7 +72,7 @@ async def test_create_booking(client: AsyncClient, mock_taskiq):
 
 
 @pytest.mark.anyio
-async def test_get_raise_by_id(client: AsyncClient):
+async def test_get_raise_by_id(client: AsyncClient) -> None:
     response = await client.get("/1000")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -71,10 +80,13 @@ async def test_get_raise_by_id(client: AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_get_booking_by_id(client: AsyncClient, session: AsyncSession):
+async def test_get_booking_by_id(
+    client: AsyncClient,
+    session: AsyncSession,
+) -> None:
     booking_in = await booking_crud.create_booking(
         session,
-        BookingCreate(name="test", datetime=datetime.now()),
+        BookingCreate(name="test", datetime=datetime.now(tz=UTC)),
     )
 
     response = await client.get(f"/{booking_in.id}")
@@ -84,7 +96,7 @@ async def test_get_booking_by_id(client: AsyncClient, session: AsyncSession):
 
 
 @pytest.mark.anyio
-async def test_get_raised_delete_by_id(client: AsyncClient):
+async def test_get_raised_delete_by_id(client: AsyncClient) -> None:
     response = await client.delete("/1000")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -95,11 +107,11 @@ async def test_get_raised_delete_by_id(client: AsyncClient):
 async def test_get_raised_if_service_type_not_pending(
     client: AsyncClient,
     session: AsyncSession,
-):
+) -> None:
     booking = Booking(
         name="test",
         service_type=ServiceType.confirmed,
-        datetime=datetime.now(),
+        datetime=datetime.now(tz=UTC),
     )
 
     await create_test_booking(session, booking)
@@ -108,21 +120,22 @@ async def test_get_raised_if_service_type_not_pending(
 
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json() == {
-        "detail": "Cannot delete booking: only bookings with 'pending' status can be deleted",
+        "detail": (
+            "Cannot delete booking: "
+            "only bookings with 'pending' status can be deleted"
+        ),
     }
-    await session.delete(booking)
-    await session.commit()
 
 
 @pytest.mark.anyio
 async def test_delete_by_id(
     client: AsyncClient,
     session: AsyncSession,
-):
+) -> None:
     booking = Booking(
         name="test",
         service_type=ServiceType.pending,
-        datetime=datetime.now(),
+        datetime=datetime.now(tz=UTC),
     )
 
     await create_test_booking(session, booking)
@@ -130,6 +143,3 @@ async def test_delete_by_id(
     response = await client.delete(f"/{booking.id}")
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-
-    await session.delete(booking)
-    await session.commit()
