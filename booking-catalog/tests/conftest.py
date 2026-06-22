@@ -1,4 +1,4 @@
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -7,15 +7,11 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
 
+from core.models import Base, db_helper
+
 
 @pytest.fixture(scope="module", autouse=True)
-async def create_db():
-    from core.config import settings
-
-    settings.db.url = "sqlite+aiosqlite:///:memory:"
-
-    from core.models import Base, db_helper
-
+async def create_db() -> None:
     async with db_helper.engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -31,16 +27,15 @@ async def client() -> AsyncGenerator[AsyncClient]:
         yield test_client
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def session() -> AsyncGenerator[AsyncSession]:
-    from core.models import db_helper
 
     async with db_helper.session_factory() as connection:
         yield connection
 
 
-@pytest.fixture(scope="function")
-def mock_taskiq():
+@pytest.fixture
+def mock_taskiq() -> Generator[AsyncMock]:
     with patch(
         "api.api_v1.booking.update_service_type.kiq",
         new_callable=AsyncMock,
