@@ -8,11 +8,11 @@ from core.config import settings
 log = logging.getLogger(__name__)
 
 result_backend = RedisAsyncResultBackend(
-    redis_url=settings.broker.url,
+    redis_url=f"{settings.broker.url}",
 )
 
 broker = RedisStreamBroker(
-    url=settings.broker.url,
+    url=f"{settings.broker.url}",
 ).with_result_backend(result_backend)
 
 
