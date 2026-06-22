@@ -12,6 +12,7 @@ from core.types import ServiceType
 from storage.booking import crud as booking_crud
 
 log = logging.getLogger(__name__)
+FAILURE_PROBABILITY = 0.15
 
 
 @broker.task
@@ -25,7 +26,7 @@ async def update_service_type(
 
     await asyncio.sleep(60)
 
-    if random.random() < 0.15:
+    if random.random() < FAILURE_PROBABILITY:  # noqa: S311
         new_status = ServiceType.failed
         await booking_crud.update_service_type(
             session,
@@ -43,5 +44,7 @@ async def update_service_type(
         log.info("Booking %s failed", service_id)
 
     log.info(
-        f"📧 [MOCK] Notification sent for booking %s: status=%s", service_id, new_status
+        "📧 [MOCK] Notification sent for booking %s: status=%s",
+        service_id,
+        new_status,
     )
