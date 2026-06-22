@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -45,7 +45,7 @@ async def create_booking(
     ],
 ) -> dict[str, str]:
     booking = await booking_crud.create_booking(session, booking_in)
-    await update_service_type.kiq(booking.id)
+    await update_service_type.kiq(booking.id)  # type: ignore
     return {
         "message": "Booking is publisher",
     }
@@ -73,7 +73,8 @@ async def delete_booking(
     if booking.service_type != ServiceType.pending:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Cannot delete booking: only bookings with 'pending' status can be deleted",
+            detail="Cannot delete booking:"
+            " only bookings with 'pending' status can be deleted",
         )
 
     await booking_crud.delete_booking(session, booking)
@@ -81,12 +82,27 @@ async def delete_booking(
 
 @router.get("/", response_model=list[BookingReadList])
 async def list_bookings(
-    service_type: str | None = Query(None, description="Фильтр по статусу"),
-    page: int = Query(1, ge=1, description="Номер страницы"),
-    size: int = Query(10, ge=1, le=100, description="Записей на странице"),
-    session: AsyncSession = Depends(db_helper.session_getter),
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.session_getter),
+    ],
+    service_type: Annotated[
+        str | None,
+        Query(None, description="Фильтр по статусу"),
+    ],
+    page: Annotated[
+        int,
+        Query(1, ge=1, description="Номер страницы"),
+    ],
+    size: Annotated[
+        int,
+        Query(10, ge=1, le=100, description="Записей на странице"),
+    ],
 ) -> list[BookingModel]:
 
     return await booking_crud.get_bookings(
-        session, service_type=service_type, page=page, size=size
+        session,
+        service_type=service_type,
+        page=page,
+        size=size,
     )
