@@ -1,4 +1,4 @@
-from sqlalchemy import update, select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import Booking
@@ -28,12 +28,21 @@ async def update_service_type(
     id_: int,
     service_type: ServiceType,
 ) -> None:
-    stmt = update(Booking).where(Booking.id == id_).values(service_type=service_type)
+    stmt = (
+        update(Booking)
+        .where(
+            Booking.id == id_,
+        )
+        .values(service_type=service_type)
+    )
     await session.execute(stmt)
     await session.commit()
 
 
-async def delete_booking(session, booking: Booking) -> None:
+async def delete_booking(
+    session: AsyncSession,
+    booking: Booking,
+) -> None:
     await session.delete(booking)
     await session.commit()
 
@@ -54,6 +63,5 @@ async def get_bookings(
     stmt = stmt.offset(offset).limit(size)
 
     result = await session.execute(stmt)
-    bookings = result.scalars().all()
 
-    return bookings
+    return list(result.scalars().all())
