@@ -78,19 +78,24 @@ alembic upgrade head
 docker-compose up
 ```
 
-5. Запуск taskiq (cd booking-catalog)
+5. Миграция
+```bash
+alembic upgrade head
+```
+
+6. Запуск taskiq (cd booking-catalog)
 ```bash
 taskiq worker core:broker --fs-discover --tasks-pattern "**/tasks"
 ```
 
-5. Запуск приложения (cd booking-catalog)
+7. Запуск приложения (cd booking-catalog)
 ```bash
 uv run main.py 
 ```
 
-6. Переход в /docs
-7. Создание новой записи
-8. В логах taskiq 
+8. Переход в /docs
+9. Создание новой записи 
+10. В логах taskiq 
 ![img.png](img.png)
 
 ## 🧪 Тестирование
