@@ -1,4 +1,4 @@
-from pydantic import BaseModel, PostgresDsn, RedisDsn
+from pydantic import AnyUrl, BaseModel, PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,7 +18,7 @@ class ApiPrefix(BaseModel):
 
 
 class DatabaseConfig(BaseModel):
-    url: PostgresDsn
+    url: PostgresDsn | AnyUrl
     echo: bool = False
 
 
