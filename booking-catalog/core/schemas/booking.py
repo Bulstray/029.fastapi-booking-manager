@@ -14,8 +14,8 @@ class BookingRead(BaseModel):
     service_type: ServiceType
 
 
-class BookingReadList(BookingRead):
-    """Модель списка всех записей"""
+class BookingReadList(BookingBase):
+    service_type: ServiceType
 
 
 class BookingCreate(BookingBase):
