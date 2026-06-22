@@ -66,6 +66,10 @@ uv sync
 ```bash
 cd booking-catalog
 ```
+3. Миграция
+```bash
+alembic upgrade head
+```
 
 3. Создание .env файла по примеру .env.template
 4. Поднять докер
@@ -73,10 +77,21 @@ cd booking-catalog
 ```bash
 docker-compose up
 ```
-5. Запуск
+
+5. Запуск taskiq (cd booking-catalog)
+```bash
+taskiq worker core:broker --fs-discover --tasks-pattern "**/tasks"
+```
+
+5. Запуск приложения (cd booking-catalog)
 ```bash
 uv run main.py 
 ```
+
+6. Переход в /docs
+7. Создание новой записи
+8. В логах taskiq 
+![img.png](img.png)
 
 ## 🧪 Тестирование
 
