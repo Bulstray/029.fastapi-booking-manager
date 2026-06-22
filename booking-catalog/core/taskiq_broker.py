@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 result_backend = RedisAsyncResultBackend(
     redis_url=f"{settings.broker.url}",
-)
+)  # type: ignore
 
 broker = RedisStreamBroker(
     url=f"{settings.broker.url}",
