@@ -6,10 +6,10 @@ from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from taskiq import TaskiqDepends
 
+from core import broker
 from core.models import db_helper
-from core.taskiq_broker import broker
 from core.types import ServiceType
-from storage.booking.crud import update_service_type
+from storage.booking import crud as booking_crud
 
 log = logging.getLogger(__name__)
 
@@ -23,17 +23,25 @@ async def update_service_type(
     ],
 ) -> None:
 
-    await asyncio.sleep(120)
+    await asyncio.sleep(60)
 
     if random.random() < 0.15:
-        await update_service_type(
+        new_status = ServiceType.failed
+        await booking_crud.update_service_type(
             session,
             service_id,
             ServiceType.failed,
         )
+        log.info("Booking %s confirmed", service_id)
     else:
-        await update_service_type(
+        new_status = ServiceType.confirmed
+        await booking_crud.update_service_type(
             session,
             service_id,
             ServiceType.confirmed,
         )
+        log.info("Booking %s failed", service_id)
+
+    log.info(
+        f"📧 [MOCK] Notification sent for booking %s: status=%s", service_id, new_status
+    )
