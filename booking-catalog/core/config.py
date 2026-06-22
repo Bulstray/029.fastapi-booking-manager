@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class RunConfig(BaseModel):
-    host: str = ("127.0.0.1",)
+    host: str = "127.0.0.1"
     port: int = 8000
 
 
@@ -19,6 +19,7 @@ class ApiPrefix(BaseModel):
 
 class DatabaseConfig(BaseModel):
     url: PostgresDsn
+    echo: bool = False
 
 
 class RedisConfig(BaseModel):
@@ -39,7 +40,7 @@ class Settings(BaseSettings):
     broker: RedisConfig
 
     run: RunConfig = RunConfig()
-    api: ApiPrefix = ApiV1Prefix()
+    api: ApiPrefix = ApiPrefix()
 
 
 settings = Settings()
