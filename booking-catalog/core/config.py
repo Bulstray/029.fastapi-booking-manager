@@ -43,4 +43,4 @@ class Settings(BaseSettings):
     api: ApiPrefix = ApiPrefix()
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]
