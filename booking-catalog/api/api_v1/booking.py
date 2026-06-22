@@ -22,7 +22,7 @@ async def get_booking_by_id(
     id_: int,
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.deps.session_getter),
+        Depends(db_helper.session_getter),
     ],
 ) -> BookingModel:
 
@@ -40,7 +40,7 @@ async def create_booking(
     booking_in: BookingCreate,
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.deps.session_getter),
+        Depends(db_helper.session_getter),
     ],
 ) -> dict[str, str]:
     await booking_crud.create_booking(session, booking_in)
